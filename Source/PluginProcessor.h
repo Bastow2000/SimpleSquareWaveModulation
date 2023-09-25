@@ -9,7 +9,8 @@
 #pragma once
 
 #include <JuceHeader.h>
-
+#include "SquareWaveMix.h"
+#include "Params.h"
 //==============================================================================
 /**
 */
@@ -55,8 +56,10 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-
+    juce::AudioProcessorValueTreeState tree;
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 private:
+    SquareWaveMix process;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SModulatorAudioProcessor)
 };

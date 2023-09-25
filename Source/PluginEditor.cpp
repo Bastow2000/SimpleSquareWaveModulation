@@ -15,6 +15,17 @@ SModulatorAudioProcessorEditor::SModulatorAudioProcessorEditor (SModulatorAudioP
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
+    mixSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+// mixSlider.setValue(process.mix);
+
+   mixSlider.addListener(this);
+   freqSlider.addListener(this);
+   addAndMakeVisible(mixSlider);
+   addAndMakeVisible(freqSlider);
+
+  mixVal = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.tree, mixId, mixSlider);
+  freqVal = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.tree, frequencyId, freqSlider);
+  
     setSize (400, 300);
 }
 
@@ -37,4 +48,11 @@ void SModulatorAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
+    mixSlider.setBounds(10, 10, getWidth() , 260);
+    freqSlider.setBounds(10, 10, getWidth() , 150);
 }
+
+  void SModulatorAudioProcessorEditor::sliderValueChanged(juce::Slider* /*slider*/) 
+  {
+
+  }

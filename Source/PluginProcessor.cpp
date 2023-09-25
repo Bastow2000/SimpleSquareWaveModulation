@@ -19,7 +19,7 @@ SModulatorAudioProcessor::SModulatorAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ),tree(*this, nullptr, "PARAMETERS",createParameterLayout())
 #endif
 {
 }
@@ -27,6 +27,19 @@ SModulatorAudioProcessor::SModulatorAudioProcessor()
 SModulatorAudioProcessor::~SModulatorAudioProcessor()
 {
 }
+
+juce::AudioProcessorValueTreeState::ParameterLayout SModulatorAudioProcessor::createParameterLayout()
+{
+    std::vector <std::unique_ptr<juce::RangedAudioParameter>> params;
+    
+    // Make sure to update the number of reservations after adding params
+    params.reserve(2);
+    auto mix = std::make_unique<juce::AudioParameterFloat>(mixId, mixName,juce::NormalisableRange<float>(0.0f, 1.0f,0.1f),0.1f);
+    auto frequency = std::make_unique<juce::AudioParameterFloat>(frequencyId, frequencyName,juce::NormalisableRange<float>(0.f, 1.f,0.1f),0.00f);
+    
+    params.push_back(std::move(mix));
+    params.push_back(std::move(frequency));
+    return{ params.begin(), params.end()};}
 
 //==============================================================================
 const juce::String SModulatorAudioProcessor::getName() const
@@ -95,6 +108,7 @@ void SModulatorAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    process.reset(sampleRate, getTotalNumInputChannels());
 }
 
 void SModulatorAudioProcessor::releaseResources()
@@ -131,31 +145,13 @@ bool SModulatorAudioProcessor::isBusesLayoutSupported (const BusesLayout& layout
 
 void SModulatorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
-
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
-
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        // ..do something to the data...
-    }
+    process.process(buffer);
+    auto* mix = tree.getRawParameterValue(mixId);
+    auto m = mix->load();
+    auto* freq = tree.getRawParameterValue(frequencyId);
+    auto f = freq->load();
+    process.setFrequency(f);
+    process.setMix(m);
 }
 
 //==============================================================================
@@ -166,7 +162,8 @@ bool SModulatorAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* SModulatorAudioProcessor::createEditor()
 {
-    return new SModulatorAudioProcessorEditor (*this);
+    //return new SModulatorAudioProcessorEditor (*this);
+    return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================

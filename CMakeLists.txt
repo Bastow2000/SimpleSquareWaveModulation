@@ -23,13 +23,14 @@ juce_add_plugin("${PROJECT_NAME}"
     COMPANY_NAME "Bastow"
     COMPANY_WEBSITE "https://bastow.weebly.com/"
     COMPANY_EMAIL "alex.bastow30@gmail.com"
-    PLUGIN_MANUFACTURER_CODE "Bfgo"
+    PLUGIN_MANUFACTURER_CODE "Bfdo"
     PLUGIN_CODE "SIMO"
     FORMATS ${formats}
-    COPY_PLUGIN_AFTER_BUILD TRUE
-    IS_SYNTH TRUE     
-    NEEDS_MIDI_INPUT TRUE
-    NEEDS_MIDI_OUTPUT TRUE
+    COPY_PLUGIN_AFTER_BUILD TRUE 
+    IS_SYNTH FALSE           # This is NOT a synth, it should process audio input
+    NEEDS_AUDIO_INPUT TRUE   # It requires audio input  
+    NEEDS_MIDI_INPUT FALSE
+    NEEDS_MIDI_OUTPUT FALSE
     IS_MIDI_EFFECT FALSE
     PRODUCT_NAME "${PROJECT_NAME}"
     PLUGIN_NAME "SimpleMod")
@@ -49,13 +50,10 @@ target_compile_definitions("${PROJECT_NAME}"
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0)
 
-#juce_add_binary_data(BinaryData
-#   SOURCES
-#	)
 
 target_link_libraries("${PROJECT_NAME}"
     PRIVATE
-	BinaryData
+	    #BinaryData
         juce::juce_audio_utils
         juce::juce_dsp
         juce::juce_recommended_config_flags
